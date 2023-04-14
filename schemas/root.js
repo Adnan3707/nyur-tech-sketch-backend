@@ -21,8 +21,7 @@ module.exports = fp(async function (fastify, opts) {
       },
       country_code: { type: "string" },
       phone_number: { type: "string" },
-      referral_id: { type: "string" },
-      role: { type: "string", enum: ["CUSTOMER", "PARTNER", "SUBPARTNER"] },
+      role: { type: "string", enum: ["CLIENT", "DESIGNER", "ADMIN"] },
     },
   };
 
