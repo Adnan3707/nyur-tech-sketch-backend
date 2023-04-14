@@ -21,7 +21,7 @@ module.exports = {
       },
       role: {
         type: Sequelize.ENUM("CLIENT", "DESIGNER", "ADMIN"),
-        defaultValue: "CUSTOMER",
+        defaultValue: "CLIENT",
         allowNull: false,
       },
       country_code: {
