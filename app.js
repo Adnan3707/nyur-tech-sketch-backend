@@ -10,6 +10,8 @@ module.exports = async function (fastify, opts) {
   // saving the original path in opts
   opts = Object.assign(opts, { rootDir: __dirname });
 
+ // 
+
   fastify.register(require("@fastify/formbody"));
   fastify.register(require("@fastify/cors"));
   fastify.register(require("fastify-axios"));
