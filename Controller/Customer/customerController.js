@@ -19,12 +19,13 @@ const AppError = require('../../Error Handler/appError')
 const validators = require('../../Validators/validators')
 
 const catchAsync=fn =>{
+  console.log('Catch async error')
     return (req,res,next)=>{
         fn(req,res,next).catch(next)
     }
 }
 
-const customerRegister =  async function (request, reply , fastify) {
+const customerRegister = catchAsync( async function (request, reply , fastify) {
       let language = request.headers["accept-language"]
         ? request.headers["accept-language"]
         : "en";
@@ -43,70 +44,11 @@ const customerRegister =  async function (request, reply , fastify) {
       // CHECKING PASSWORD REGEX FORMAT MATCH
       var term = data.password;
      validators.PasswordCheck(term)
+
+
       try {
-        // GETTING USER
-        let user = await fastify.db.User.findOne({
-          where: {
-            email: data.email,
-          },
-        });
-
-        // CHECKING USER IF ALREADY EXISTS
-        if (user) {
-          logs.response = JSON.stringify(resp);
-          logs.status = "FAILURE";
-          await fastify.db.audit_trail.create(logs);
-        resp = {
-          statusCode: 400,
-          message: ACCOUNT_EXISTS[language]
-            }
-            return resp
-     throw new AppError(ACCOUNT_EXISTS[language],400)
-        }
-        // CHECKING USER ENDS
-
-        // BLOCKING EXCHANGE INTEGRATION FOR DEVELOPMENT
-        if (process.env.NODE_ENV != "DEVELOPMENT") {
-          // PAYLOAD TO SIGN
-          let exchange_payload = {
-            email: data.email,
-            password: data.password,
-            ip: request.ip,
-            device: "web",
-            appKey: process.env.APP_KEY,
-          };
-
-          // GENERATING SIGNATURE
-          let signature = await fastify.exchangeSign(exchange_payload);
-          // APPENDING SIGNED SIGNATURE
-          exchange_payload.sign = signature;
-
-          // SENDING REQUEST TO EXCHANGE TO GENERATE UID
-          const getUID = await fastify.axios.post(
-            endpoints.exchange_login_register,
-            exchange_payload
-          );
-          console.log(JSON.stringify(getUID.data, null, 2));
-
-          // INCASE EXCHANGE API FAILS DUE TO SOME REASON
-          if (getUID.data.code != "0") {
-            console.error("EXCHANGE ERROR", getUID.data);
-            resp = {
-              statusCode: 403,
-              message: getUID.data.msg,
-            };
-            logs.response = JSON.stringify(resp);
-            logs.status = "FAILURE";
-            await fastify.db.audit_trail.create(logs);
-            reply.code(403);
-            return resp;
-          }
-
-          // APPENDING EXCHANGE DATA TO THE FINAL SIGNUP DATA
-          data.uid = getUID.data.data.uid;
-          data.invite_code = getUID.data.data.inviteCode;
-        }
-        // BLOCKING EXCHANGE FOR DEVELOPMENT ENDS
+          // Check If User Exists 
+        validators.UserCheck(fastify,{ email: data.email })
 
         // HASHING THE PASSWORD
         let hashedPassword = fastify.db.User.setPassword(
@@ -125,7 +67,7 @@ const customerRegister =  async function (request, reply , fastify) {
         };
 
         // Generating Token
-        let token = await fastify.jwtsign(payload, data.device_id, language);
+        let token = validators.Token(payload, data.device_id, language,fastify)
 
         // Checking Response from JWT SIGN Plugin
         if (token.statusCode != 202) {
@@ -160,7 +102,7 @@ const customerRegister =  async function (request, reply , fastify) {
         await fastify.db.audit_trail.create(logs);
         return resp;
       } catch (err) {
-        console.error(err);
+        console.error('catch error');
         resp = {
           statusCode: 400,
           message: SERVER_ERROR[language],
@@ -172,7 +114,7 @@ const customerRegister =  async function (request, reply , fastify) {
         return resp;
       }
     }
-
+)
 
 module.exports = {
     customerRegister

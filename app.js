@@ -15,7 +15,7 @@ module.exports = async function (fastify, opts) {
   fastify.register(require("@fastify/formbody"));
   fastify.register(require("@fastify/cors"));
   fastify.register(require("fastify-axios"));
-
+  fastify.register(require('@fastify/express'))
   // This loads all plugins defined in plugins
   // those should be support plugins that are reused
   // through your application
