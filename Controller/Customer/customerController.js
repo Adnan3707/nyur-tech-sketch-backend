@@ -18,14 +18,8 @@ const AppError = require('../../Error Handler/appError')
 
 const validators = require('../../Validators/validators')
 
-const catchAsync=fn =>{
-  console.log('Catch async error')
-    return (req,res,next)=>{
-        fn(req,res,next).catch(next)
-    }
-}
 
-const customerRegister = catchAsync( async function (request, reply , fastify) {
+const customerRegister =  async function (request, reply , fastify) {
       let language = request.headers["accept-language"]
         ? request.headers["accept-language"]
         : "en";
@@ -43,12 +37,12 @@ const customerRegister = catchAsync( async function (request, reply , fastify) {
 
       // CHECKING PASSWORD REGEX FORMAT MATCH
       var term = data.password;
-     validators.PasswordCheck(term)
+     validators.PasswordSyntaxCheck(term)
 
 
       try {
           // Check If User Exists 
-        validators.UserCheck(fastify,{ email: data.email })
+        validators.UserCheck(language,logs,request,fastify,{ email: data.email })
 
         // HASHING THE PASSWORD
         let hashedPassword = fastify.db.User.setPassword(
@@ -114,7 +108,9 @@ const customerRegister = catchAsync( async function (request, reply , fastify) {
         return resp;
       }
     }
-)
+const login = async function(request,reply,fastify){
+  
+}
 
 module.exports = {
     customerRegister

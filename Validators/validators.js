@@ -13,7 +13,7 @@ const {
 } = require('../config/errors.json')
 
 const validator = {
-    PasswordCheck :async function(term){
+  PasswordSyntaxCheck :async function(term){
       // FOR SPECIAL CHAR CHECK
       var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
       if (format.test(term)) {
@@ -36,18 +36,36 @@ const validator = {
       // CHECKING PASSWORD REGEX ENDS
 
 },
-  UserCheck: async function(fastify,condition){
+  UserCheck: async function(language,logs,request,fastify,condition){
+    if (condition.hasOwnProperty('password')) {
+      let user = await fastify.db.User.findOne({
+        where: condition
+      });
+      console.log(user)
+      await fastify.db.User.findOne({ where: { username: username } }).then(function (user) {
+        if (!user) {
+            // res.redirect('/login');
+            console.log("User Not Found")
+            return
+        } else if (!user.validPassword(password)) {
+          console.log("Invalid Password")
+          return
+        } else {
+          console.log("Login Successful")
+          return
+        }
+    });
+    }
        // GETTING USER
        let user = await fastify.db.User.findOne({
         where: condition
       });
-
       // CHECKING USER IF ALREADY EXISTS
       if (user) {
         logs.response = JSON.stringify(resp);
         logs.status = "FAILURE";
         await fastify.db.audit_trail.create(logs);
-      resp = {
+      resp = { 
         statusCode: 400,
         message: ACCOUNT_EXISTS[language]
           }
@@ -102,8 +120,8 @@ const validator = {
   Token: async function(payload, device_id, language,fastify){
     return await fastify.jwtsign(payload, device_id, language);
   },
-  VerifyToken: async function(token){
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+  VerifyToken: async function(token, device_id){
+    jwt.verify(token,  device_id, (err, user) => {
       if (err) { 
        res.status(403).send("Token invalid")
        }
@@ -113,6 +131,7 @@ const validator = {
        }
       }
     )
-  }
+  },
+  
 }
 module.exports =  validator

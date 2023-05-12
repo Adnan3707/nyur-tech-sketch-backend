@@ -42,4 +42,7 @@ module.exports = async function (fastify, opts) {
     }
 
   );
+  fastify.post('/login',{},(req,reply)=>{
+    return
+  })
 };
