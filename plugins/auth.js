@@ -8,6 +8,7 @@ const {
   AUTHENTICATION_INVALID,
   ACCOUNT_DOESNT_EXIST,
 } = require("../config/errors.json");
+const AppError = require('../Error Handler/appError')
 
 module.exports = fp(async function (fastify, opts) {
   const permit = new Bearer();
@@ -27,8 +28,9 @@ module.exports = fp(async function (fastify, opts) {
       // No token found, so ask for authentication.
       if (!token) {
         console.log("AUTHORIZE: NO TOKEN FOUND");
-        permit.fail(reply.raw);
-        throw new Error("Authorization required!");
+        // permit.fail(reply.raw);
+        // return "AUTHORIZE: NO TOKEN FOUND"
+        throw new AppError("Authorization required!",210);
       }
 
       // Verifying the authenticity of the Token
@@ -46,7 +48,8 @@ module.exports = fp(async function (fastify, opts) {
           ? ACCOUNT_DOESNT_EXIST[language]
           : ACCOUNT_DOESNT_EXIST.en;
         permit.fail(reply.raw);
-        throw new Error(message);
+        // return message
+        throw new AppError(message, ACCOUNT_DOESNT_EXIST[code]);
       }
       if (!user.user_status) {
         console.log("USER BLOCKED OR DISABLED: User account has been disabled");
@@ -55,7 +58,8 @@ module.exports = fp(async function (fastify, opts) {
           ? USER_ACCOUNT_DISABLED[language]
           : USER_ACCOUNT_DISABLED.en;
         reply.code(405);
-        throw new Error(message);
+        // return message
+        throw new AppError(message,USER_ACCOUNT_DISABLED[code]);
       }
 
       console.log("=============", jwt_payload);
@@ -63,7 +67,8 @@ module.exports = fp(async function (fastify, opts) {
       //CHECKING FOR THE BODY FORMAT
       if (!request.body) {
         permit.fail(reply.raw);
-        throw new Error("Invalid Form Body");
+        // return message
+        throw new AppError("Invalid Form Body",210);
       }
 
       //CHECKING FOR THE DEVICE ID PARAM
@@ -71,8 +76,9 @@ module.exports = fp(async function (fastify, opts) {
         console.log(
           "CUSTOMER AUTHORIZE: " + jwt_payload.email + " DEVICE ID MISSING"
         );
-        permit.fail(reply.raw);
-        throw new Error("body should have required property 'device_id'");
+        // permit.fail(reply.raw);
+        // return message
+        throw new AppError("body should have required property 'device_id'",210);
       }
 
       // Double Checking the Token Identification from DB
@@ -93,8 +99,9 @@ module.exports = fp(async function (fastify, opts) {
         message = language
           ? AUTHENTICATION_INVALID[language]
           : AUTHENTICATION_INVALID.en;
-        permit.fail(reply.raw);
-        throw new Error(message);
+        // permit.fail(reply.raw);
+        // return message
+        throw new AppError(message,AUTHENTICATION_INVALID.code);
       }
 
       // CHECKING TOKEN VALIDITY
@@ -110,7 +117,8 @@ module.exports = fp(async function (fastify, opts) {
             jwt_payload.email
         );
         permit.fail(reply.raw);
-        throw new Error("Signed authorization token expired");
+        // return "AUTHORIZE: " + " TOKEN EXPIRED IN THE DATABASE FOR " + jwt_payload.email
+        throw new AppError("Signed authorization token expired",210);
       }
 
       // TOKEN VALIDITY CHECK ENDS
@@ -127,6 +135,8 @@ module.exports = fp(async function (fastify, opts) {
 
       // Authentication succeeded, save the context and proceed...
       request.user = jwt_payload;
+      console.log(request)
+      return request
     })
     .register(require("@fastify/auth"));
 });

@@ -1,7 +1,7 @@
 {
   "USER_ACCOUNT_DISABLED": {
     "error": true,
-    "code": 200,
+    "code": 201,
     "en": "User account has been disabled",
     "ar": "تم تعطيل حساب المستخدم",
     "zh": "用户账户已被禁用",
@@ -9,7 +9,7 @@
   },
   "AUTHENTICATION_INVALID": {
     "error": true,
-    "code": 200,
+    "code": 210,
     "en": "Authorization invalid!",
     "ar": "التصريح غير صحيح",
     "zh": "认证无效",
@@ -17,7 +17,7 @@
   },
   "ACCOUNT_DOESNT_EXIST": {
     "error": true,
-    "code": 200,
+    "code": 300,
     "en": "Sorry, your account does not exist.",
     "ar": "عفواً ، هذا الحساب غير موجود",
     "zh": "抱歉，您的账户不存在",

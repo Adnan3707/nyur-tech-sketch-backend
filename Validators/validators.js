@@ -1,3 +1,4 @@
+const AppError = require('../Error Handler/appError')
 // Server Errors 
 const {
   ACCOUNT_EXISTS,
@@ -11,14 +12,14 @@ const {
   DEVICE_DOESNT_EXIST,
   AUTHENTICATION_SUCCESS,
 } = require('../config/errors.json')
-
+// const jwt = require('j')
 const validator = {
-  PasswordSyntaxCheck :async function(term){
+  PasswordSyntaxCheck : function(term){
       // FOR SPECIAL CHAR CHECK
       var format = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
       if (format.test(term)) {
         resp = {
-          statusCode: 200,
+          statusCode: 210,
           message: "Password should not contain special characters",
         };
         return resp;
@@ -28,7 +29,7 @@ const validator = {
       var re = new RegExp("^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$");
       if (!re.test(term)) {
         resp = {
-          statusCode: 200,
+          statusCode: 210,
           message: "Password should have 1 uppercase, 1 lowercase & a number",
         };
         return resp;
@@ -37,40 +38,39 @@ const validator = {
 
 },
   UserCheck: async function(language,logs,request,fastify,condition){
-    if (condition.hasOwnProperty('password')) {
-      let user = await fastify.db.User.findOne({
-        where: condition
-      });
-      console.log(user)
-      await fastify.db.User.findOne({ where: { username: username } }).then(function (user) {
-        if (!user) {
-            // res.redirect('/login');
-            console.log("User Not Found")
-            return
-        } else if (!user.validPassword(password)) {
-          console.log("Invalid Password")
-          return
-        } else {
-          console.log("Login Successful")
-          return
-        }
-    });
-    }
+ console.log(request.body.email)
+  //  await fastify.db.User.findOne({ where: { email : condition.email } })
+  //   .then(function (user) {
+  //       // console.log(user)
+  //       if (!user) {
+  //           // res.redirect('/login');
+  //           console.log("User Not Found")
+  //           return
+  //       } else if (!user.validatePassword(condition.email,condition.password,user.password)) {
+  //         console.log("Invalid Password")
+  //         return
+  //       } else {
+  //         console.log("Login Successful")
+  //         return
+  //       }
+  //   });
+       let email = request.body.email
        // GETTING USER
        let user = await fastify.db.User.findOne({
-        where: condition
-      });
+        where: {
+          email
+        }
+            });
       // CHECKING USER IF ALREADY EXISTS
       if (user) {
-        logs.response = JSON.stringify(resp);
-        logs.status = "FAILURE";
-        await fastify.db.audit_trail.create(logs);
       resp = { 
-        statusCode: 400,
+        statusCode: 401,
         message: ACCOUNT_EXISTS[language]
           }
-          return resp
-  //  throw new AppError(ACCOUNT_EXISTS[language],400)
+      logs.response = JSON.stringify(resp);
+      logs.status = "FAILURE";
+      await fastify.db.audit_trail.create(logs);
+      return resp
       }
       // CHECKING USER ENDS
 
@@ -123,11 +123,10 @@ const validator = {
   VerifyToken: async function(token, device_id){
     jwt.verify(token,  device_id, (err, user) => {
       if (err) { 
-       res.status(403).send("Token invalid")
+        return 'Invalid Token'
        }
        else {
-       req.user = user
-       next() //proceed to the next action in the calling function
+     return user
        }
       }
     )

@@ -12,9 +12,7 @@ const {
   AUTHENTICATION_SUCCESS,
 } = require('../../config/errors.json')
 
-const statusCodes = require('http').STATUS_CODES
 const AppError = require('../../Error Handler/appError')
-// var fastify = require("fastify");
 
 const validators = require('../../Validators/validators')
 
@@ -24,7 +22,7 @@ const customerRegister =  async function (request, reply , fastify) {
         ? request.headers["accept-language"]
         : "en";
       let data = request.body;
-      let resp,
+      let resp ;
         logs = {
           email: request.body.email,
           action: "Register",
@@ -37,13 +35,17 @@ const customerRegister =  async function (request, reply , fastify) {
 
       // CHECKING PASSWORD REGEX FORMAT MATCH
       var term = data.password;
-     validators.PasswordSyntaxCheck(term)
+    let passwordError = validators.PasswordSyntaxCheck(request.body.password) 
+    let UserCheck =  await validators.UserCheck(language,logs,request,fastify)
+      if(passwordError){
+        throw new AppError(passwordError.message,passwordError.statusCode)
+      }
+      if(UserCheck){
+        throw new AppError(UserCheck.message,UserCheck.statusCode)
+      }
 
 
       try {
-          // Check If User Exists 
-        validators.UserCheck(language,logs,request,fastify,{ email: data.email })
-
         // HASHING THE PASSWORD
         let hashedPassword = fastify.db.User.setPassword(
           data.email,
@@ -61,7 +63,7 @@ const customerRegister =  async function (request, reply , fastify) {
         };
 
         // Generating Token
-        let token = validators.Token(payload, data.device_id, language,fastify)
+        let token =  validators.Token(payload, data.device_id, language,fastify)
 
         // Checking Response from JWT SIGN Plugin
         if (token.statusCode != 202) {
@@ -96,6 +98,7 @@ const customerRegister =  async function (request, reply , fastify) {
         await fastify.db.audit_trail.create(logs);
         return resp;
       } catch (err) {
+        console.log(err)
         console.error('catch error');
         resp = {
           statusCode: 400,
@@ -110,8 +113,56 @@ const customerRegister =  async function (request, reply , fastify) {
     }
 const login = async function(request,reply,fastify){
   
+  let language = request.headers["accept-language"]
+  ? request.headers["accept-language"]
+  : "en";
+  let resp,
+  
+  logs = {
+    action: "Login",
+    url: "/login",
+    request_header: JSON.stringify(request.headers),
+    request: JSON.stringify(request.body),
+    axios_request: "",
+    axios_response: "",
+  };
+
+    let payload = {
+      email: '',
+      device_id: ''
+    };
+
+    // JWT Token Check - In From DataBase
+    await fastify.authorize(request).then((response)=>{
+    payload.email = response.user.email;
+    payload.device_id = response.body.device_id
+    })
+
+    // Update Token
+    let token = await validators.Token(payload, payload.device_id, language,fastify)
+
+    if (token.statusCode != 202) {
+      // logs.response = JSON.stringify(token);
+      // logs.status = "FAILURE";
+      await fastify.db.audit_trail.create(logs);
+      reply.code(token.statusCode || 401);
+      // return token;
+      throw new AppError('Token Error',210)
+    }
+    reply.code(200);
+    resp = {
+      statusCode: 200,
+      message: 'Login Success :-'+ payload.email,
+      data: {
+        access_token: token.access_token,
+        refresh_token: token.refresh_token,
+      },
+    };
+    return resp;
+
+
 }
 
 module.exports = {
-    customerRegister
+    customerRegister,login
 }

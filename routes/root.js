@@ -22,8 +22,27 @@ const {
 } = require("../config/errors.json");
 
 module.exports = async function (fastify, opts) {
-
-  var {customerRegister} = require('../Controller/Customer/customerController')
+  fastify.setErrorHandler(function (error, request, reply) {
+    console.log('*********Error Handling Middleware')
+  //  console.log(error)
+   
+   // Admin Handler Code:- 20X
+   if(error.statusCode == 201 ){ 
+    console.log(error)
+    reply.send('Plz Contact admin');
+   }
+   // Token Error OR Wrong Details Code:- 2X0
+   if(error.statusCode == 210 || 401 ){ 
+    console.log(error)
+    reply.send('Login using UserName and Password');
+   }
+   // No User Found Code:- 30X
+   if(error.statusCode == 300 ){ 
+    console.log(error)
+    reply.send('No Email Found , New Registration Required');
+   }
+  });
+  var {customerRegister,login} = require('../Controller/Customer/customerController')
 
   fastify.post(
     "/register",
@@ -38,11 +57,12 @@ module.exports = async function (fastify, opts) {
       },
     // },customerController.customerRegister
     },(req,reply)=>{
-     return customerRegister(req,reply,fastify)
+    return  customerRegister(req,reply,fastify)
     }
 
   );
   fastify.post('/login',{},(req,reply)=>{
-    return
+    return login(req,reply,fastify)
   })
+
 };

@@ -11,7 +11,7 @@ module.exports = async function (fastify, opts) {
   opts = Object.assign(opts, { rootDir: __dirname });
 
  // 
-
+//  fastify.register(require('@fastify/sensible'), { errorHandler: false } )
   fastify.register(require("@fastify/formbody"));
   fastify.register(require("@fastify/cors"));
   fastify.register(require("fastify-axios"));

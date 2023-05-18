@@ -4,6 +4,7 @@ require("dotenv").config();
 
 var Fastify = require("fastify");
 var errorController = require('./Error Handler/errorController');
+const fastify = require("fastify");
 // const fastify = require("fastify");
 
 const envToLogger = {
@@ -44,30 +45,16 @@ const app = Fastify({
   next(error)
 })
 
-// fastify.addHook('onError', (request, reply, error, next) => {
-// console.log(error)
-
-//   reply.status(error.statusCode).send({
-//     message: error.message,
-//     statusCode:error.statusCode
-//   })
-//   next(error)
-// })
-// const errorHandler = (err, req, res, next) => {
-//   console.error(err)
-//   res.status(500).send({
-//     error: 'Internal server error',
-//   })
-// }
+fastify.addHook('onError', async (request, reply, error) => {
+  console.log("***************Error Hook")
+  // Useful for custom error logging
+  // You should not use this hook to update the error
+})
 
 // fastify.use(errorHandler)
 
-// fastify.setErrorHandler((error, request, reply) => {
-//   const { statusCode, message } = error
-//   reply.status(statusCode || 500).send({
-//     message: message || 'Internal Server Error'
-//   })
-// })
+
+
 
 // Registering application as a normal plugin.
 app.register(require("./app.js"));

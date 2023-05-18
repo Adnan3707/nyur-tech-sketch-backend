@@ -9,6 +9,13 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
+     validatePassword(salt, password, old_hash) {
+      // email is supplied as Salt to create unique hash
+      var hash = crypto
+        .pbkdf2Sync(password, salt, 1000, 64, "sha512")
+        .toString("hex");
+      return old_hash === hash; // Compare and return true or false based on the user data
+    };
   }
   User.init(
     {
@@ -64,13 +71,7 @@ module.exports = (sequelize, DataTypes) => {
     return hash;
   };
 
-  User.validatePassword = function (salt, password, old_hash) {
-    // email is supplied as Salt to create unique hash
-    var hash = crypto
-      .pbkdf2Sync(password, salt, 1000, 64, "sha512")
-      .toString("hex");
-    return old_hash === hash; // Compare and return true or false based on the user data
-  };
+
 
   return User;
 };
