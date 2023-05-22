@@ -118,7 +118,8 @@ const customerRegister =  async function (request, reply , fastify) {
       }
     }
 const login = async function(request,reply,fastify){
-  
+  const authorizationHeader = request.headers.authorization;
+  let token ;
   let language = request.headers["accept-language"]
   ? request.headers["accept-language"]
   : "en";
@@ -133,6 +134,31 @@ const login = async function(request,reply,fastify){
     axios_response: "",
   };
 
+  if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
+            // Bearer token is missing
+        let user = await fastify.db.User.findOne({
+          where:{
+            email:request.body.email
+          }
+        })
+        let passwordCheck = user.validatePassword(request.body.email,request.body.password,user.password)
+        if(passwordCheck ){
+          token = await validators.Token({email:request.body.email}, request.body.device_id, language,fastify) 
+          reply.code(200);
+          resp = {
+            statusCode: 200,
+            message: 'Login Success Using Email & Password:-'+ request.body.email,
+            data: {
+              access_token: token.access_token,
+              refresh_token: token.refresh_token,
+            },
+          };
+          return resp;
+        }
+        throw new AppError('Wrong Email oR Password',220)
+}
+
+
     let payload = {
       email: '',
       device_id: ''
@@ -145,7 +171,7 @@ const login = async function(request,reply,fastify){
     })
 
     // Update Token
-    let token = await validators.Token(payload, payload.device_id, language,fastify)
+     token = await validators.Token(payload, payload.device_id, language,fastify)
 
     if (token.statusCode != 202) {
       // logs.response = JSON.stringify(token);
@@ -158,7 +184,7 @@ const login = async function(request,reply,fastify){
     reply.code(200);
     resp = {
       statusCode: 200,
-      message: 'Login Success :-'+ payload.email,
+      message: 'Login Success Using Token For :-'+ payload.email,
       data: {
         access_token: token.access_token,
         refresh_token: token.refresh_token,

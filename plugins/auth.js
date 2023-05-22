@@ -135,7 +135,6 @@ module.exports = fp(async function (fastify, opts) {
 
       // Authentication succeeded, save the context and proceed...
       request.user = jwt_payload;
-      console.log(request)
       return request
     })
     .register(require("@fastify/auth"));
