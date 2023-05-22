@@ -1,4 +1,10 @@
 // Server Errors 
+const { where } = require('sequelize');
+const moment = require('moment');
+const crypto = require("crypto");
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
+
 const {
   ACCOUNT_EXISTS,
   AUTHENTICATION_INVALID,
@@ -163,6 +169,87 @@ const login = async function(request,reply,fastify){
 
 }
 
+const recover = async function(request,reply,fastify){
+    let language = request.headers["accept-language"]
+    ? request.headers["accept-language"]
+    : "en";
+   let resp;
+      let email = request.body.email
+      let user = await fastify.db.User.findOne({
+        where: {
+          email
+        }
+      });
+      if(!user) throw new AppError('User Does Not Exists',400)
+     user.generatePasswordReset();
+     // Testing Only
+     let link  ;
+     // Save Reset Token And Expiery To DataBase
+    try{
+        await  user.save()
+      // Send Email To User Mail
+        await fastify.send(user.resetPasswordToken,request,request).then((suc)=>{
+        link = "http://" + request.headers.host + "/change?token="+user.resetPasswordToken 
+        console.log(link)
+      }) 
+    }catch{
+      throw new AppError('Error In Generating Link',400)
+    }
+    resp = {
+      statusCode: 200,
+      message: "Email Sent To User",
+    };
+    return resp
+}
+const changePassword = async function(request,reply,fastify){
+  let data = request.body;
+let resp ;
+let language = request.headers["accept-language"]
+? request.headers["accept-language"]
+: "en";
+logs = {
+  // email: request.body.email,
+  action: "changePassword",
+  url: "/changePassword",
+  request_header: JSON.stringify(request.headers),
+  request: JSON.stringify(request.body),
+  axios_request: "",
+  axios_response: "",
+};
+   let {token} = request.query ;
+    if(request.body.password !== request.body.confirmPassword) throw new AppError('Password and confirm dosent match ',202)
+  // let UserCheck =  await validators.UserCheck(language,logs,request,fastify)
+    if(validators.PasswordSyntaxCheck(request.body.password)) throw new AppError('Password Syntax Error',202)
+    let user = await fastify.db.User.findOne({
+      where:{
+        resetPasswordToken: token
+      }
+        })
+        // Check Token
+      if(user.resetPasswordToken !== token) throw new AppError('Token Error',400)
+    if(user){
+      
+            // Assuming the given date is represented as a number (timestamp)
+            let givenDate = user.resetPasswordExpires // Example timestamp
+            var isBefore1Hours  
+            givenDate > (Date.now() - (60 * 60 * 1000)) ? isBefore1Hours = true :  isBefore1Hours = false
+    }
+    if(isBefore1Hours){
+      console.log('Entered Change Password')
+      user.password= crypto
+      .pbkdf2Sync(request.body.password, user.email, 1000, 64, "sha512")
+      .toString("hex");
+      user.resetPasswordToken = null;
+      user.resetPasswordExpires = null;
+    await user.save();
+    resp = {
+      statusCode: 200,
+      message: "Password Change Successfully",
+    };
+    return resp;
+    }
+    throw new AppError('Error In Change Your Password',404)
+  }
 module.exports = {
-    customerRegister,login
+    customerRegister,login,recover,changePassword
 }

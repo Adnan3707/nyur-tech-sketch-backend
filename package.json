@@ -22,19 +22,25 @@
     "@fastify/formbody": "^7.4.0",
     "@fastify/jwt": "^6.5.0",
     "@fastify/sensible": "^5.0.0",
+    "@sendgrid/mail": "^7.7.0",
     "crypto-js": "^4.1.1",
     "fastify": "^4.0.0",
     "fastify-axios": "^1.2.6",
     "fastify-cli": "^5.7.0",
     "fastify-express": "^0.4.0",
+    "fastify-mailer": "^2.3.1",
+    "fastify-nodemailer": "^5.0.0",
     "fastify-plugin": "^4.5.0",
+    "fastify-sendgrid": "^1.0.4",
     "moment": "^2.29.4",
     "mysql2": "^2.3.3",
+    "nodemailer": "^6.9.2",
     "path": "^0.12.7",
     "permit": "^0.2.4",
     "radash": "^10.8.1",
     "rand-token": "^1.0.1",
-    "sequelize": "^6.28.0"
+    "sequelize": "^6.28.0",
+    "sequelize-cli": "^6.6.0"
   },
   "devDependencies": {
     "tap": "^16.1.0"

@@ -42,7 +42,7 @@ module.exports = async function (fastify, opts) {
     reply.send('No Email Found , New Registration Required');
    }
   });
-  var {customerRegister,login} = require('../Controller/Customer/customerController')
+  var {customerRegister,login,recover,changePassword} = require('../Controller/Customer/customerController')
 
   fastify.post(
     "/register",
@@ -64,5 +64,10 @@ module.exports = async function (fastify, opts) {
   fastify.post('/login',{},(req,reply)=>{
     return login(req,reply,fastify)
   })
-
+  fastify.post('/recover',{},(req,reply)=>{
+  return recover(req,reply,fastify)
+  })
+  fastify.post('/change',{},(req,reply)=>{
+    return changePassword(req,reply,fastify)
+  })
 };

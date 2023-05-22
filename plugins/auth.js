@@ -47,7 +47,7 @@ module.exports = fp(async function (fastify, opts) {
         message = language
           ? ACCOUNT_DOESNT_EXIST[language]
           : ACCOUNT_DOESNT_EXIST.en;
-        permit.fail(reply.raw);
+        // permit.fail(reply.raw);
         // return message
         throw new AppError(message, ACCOUNT_DOESNT_EXIST[code]);
       }

@@ -16,6 +16,10 @@ module.exports = (sequelize, DataTypes) => {
         .toString("hex");
       return old_hash === hash; // Compare and return true or false based on the user data
     };
+    generatePasswordReset = function() {
+      this.resetPasswordToken = crypto.randomBytes(20).toString('hex');
+      this.resetPasswordExpires = Date.now() + 3600000; //expires in an hour
+  };
   }
   User.init(
     {
@@ -47,6 +51,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      resetPasswordToken: {
+        type: DataTypes.STRING,
+        required: false
+    },
+    resetPasswordExpires: {
+        type: DataTypes.STRING,
+        required: false
+    },
       last_activity: {
         type: DataTypes.DATE,
         allowNull: true,

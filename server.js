@@ -5,6 +5,7 @@ require("dotenv").config();
 var Fastify = require("fastify");
 var errorController = require('./Error Handler/errorController');
 const fastify = require("fastify");
+const AppError = require("./Error Handler/appError");
 // const fastify = require("fastify");
 
 const envToLogger = {
@@ -30,7 +31,7 @@ const app = Fastify({
 });
 
 // Error Handler
-  const Allowed_URL = ["/register" , '/' ]
+  const Allowed_URL = ["/register" , "/","/recover","/change"]
   const Allowed_Method = ['POST']
    // Request Error
   fastify.addHook('onRequest', (request, reply, next) => {
@@ -40,7 +41,7 @@ const app = Fastify({
     return next()
   }
   // Throw an error if the requested route doesn't exist
-  const error = new Error('Route not found')
+  const error = new AppError('Route not found',404)
   error.statusCode = 404
   next(error)
 })
@@ -66,11 +67,13 @@ let config = { port: process.env.PORT || 5000, host: "0.0.0.0" };
 console.log(process.env.PORT)
 
 // Start listening.
+app.listen(config);
 const start = async () => {
   try {
     await app.listen(config);
-    console.log("Server listening at " + config.port);
+    console.log("Server listening at " + config.port)
   } catch (err) {
+    console.log("Enetred error")
     app.log.error(err);
     process.exit(1);
   }
