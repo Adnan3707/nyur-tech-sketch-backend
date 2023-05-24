@@ -1,6 +1,7 @@
 "use strict";
 
 const fs = require("fs");
+const { request } = require("http");
 const path = require("path");
 const Sequelize = require("sequelize");
 
@@ -87,4 +88,8 @@ module.exports = async function (fastify, opts) {
       return resp;
     }
   );
+  fastify.post('/profile',{},async(request,reply)=>{
+    console.log(request.headers.authorization)
+    return 'Done'
+  })
 };

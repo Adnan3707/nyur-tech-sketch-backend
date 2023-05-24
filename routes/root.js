@@ -70,4 +70,8 @@ module.exports = async function (fastify, opts) {
   fastify.post('/change',{},(req,reply)=>{
     return changePassword(req,reply,fastify)
   })
+  fastify.post('/profile',{},async(request,reply)=>{
+    console.log(request.headers.authorization)
+    
+  })
 };

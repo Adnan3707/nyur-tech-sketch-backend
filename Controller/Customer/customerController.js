@@ -113,7 +113,7 @@ const customerRegister =  async function (request, reply , fastify) {
         logs.response = JSON.stringify(resp);
         logs.status = "FAILURE";
         await fastify.db.audit_trail.create(logs);
-        reply.code(400);
+        reply.code(201);
         return resp;
       }
     }
@@ -135,6 +135,8 @@ const login = async function(request,reply,fastify){
   };
 
   if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
+    // let test =    await fastify.authorize(request)
+    // console.log('Test>>>',test)
             // Bearer token is missing
         let user = await fastify.db.User.findOne({
           where:{
@@ -148,9 +150,10 @@ const login = async function(request,reply,fastify){
           resp = {
             statusCode: 200,
             message: 'Login Success Using Email & Password:-'+ request.body.email,
+            access_token: token.access_token,
+            refresh_token: token.refresh_token,
             data: {
-              access_token: token.access_token,
-              refresh_token: token.refresh_token,
+              User: user,
             },
           };
           return resp;
@@ -165,11 +168,16 @@ const login = async function(request,reply,fastify){
     };
 
     // JWT Token Check - In From DataBase
-    await fastify.authorize(request).then((response)=>{
+   await fastify.authorize(request).then((response)=>{
     payload.email = response.user.email;
     payload.device_id = response.body.device_id
     })
 
+    let user = await fastify.db.User.findOne({
+      where:{
+        email:payload.email
+      }
+    })
     // Update Token
      token = await validators.Token(payload, payload.device_id, language,fastify)
 
@@ -185,9 +193,10 @@ const login = async function(request,reply,fastify){
     resp = {
       statusCode: 200,
       message: 'Login Success Using Token For :-'+ payload.email,
+      access_token: token.access_token,
+      refresh_token: token.refresh_token,
       data: {
-        access_token: token.access_token,
-        refresh_token: token.refresh_token,
+        User: user
       },
     };
     return resp;
@@ -276,6 +285,16 @@ logs = {
     }
     throw new AppError('Error In Change Your Password',404)
   }
+const profile = async function(request,reply,fastify){
+  // try{
+  //   let user = await fastify.db.tokens.findOne({
+  //     where:{ token:request.body.refresh_token
+  //     }
+  //   })
+
+  // }
+}
+
 module.exports = {
     customerRegister,login,recover,changePassword
 }

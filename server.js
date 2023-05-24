@@ -31,7 +31,7 @@ const app = Fastify({
 });
 
 // Error Handler
-  const Allowed_URL = ["/register" , "/","/recover","/change"]
+  const Allowed_URL = ["/register" , "/","/recover","/change","/profile"]
   const Allowed_Method = ['POST']
    // Request Error
   fastify.addHook('onRequest', (request, reply, next) => {

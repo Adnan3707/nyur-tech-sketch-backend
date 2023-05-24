@@ -9,11 +9,16 @@ module.exports = fp(async function (fastify, opts) {
       "email",
       "password",
       "country_code",
+      "City",
       "phone_number",
+      "Gender",
+
     ],
     properties: {
       device_id: { type: "string" },
       email: { type: "string", format: "email" },
+      Gender:{ type: "string" },
+      City: { type: "string" },
       password: {
         type: "string",
         minLength: 8,
